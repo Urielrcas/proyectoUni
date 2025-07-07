@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Recordatorios</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stylesindex.css') }}" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo">
+            <span class="material-icons">lightbulb</span>
+            Unigestor
+        </div>
+
+        <div class="profile-section">
+            {% if current_user.is_authenticated %}
+                <span class="username">{{ current_user.nombre }}</span>
+            {% endif %}
+            <div class="profile">
+                {% if current_user.imagen %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.imagen) }}" class="profile-image" />
+                {% else %}
+                    <img src="{{ url_for('static', filename='uploads/default.jpg') }}" class="profile-image" />
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-item">
+                <span class="material-icons">lightbulb</span>
+                Notas
+            </a>
+            <a href="{{ url_for('recordatorios') }}" class="sidebar-item active">
+                <span class="material-icons">notifications</span>
+                Recordatorios
+            </a>
+            <a href="{{ url_for('clases') }}" class="sidebar-item">
+                <span class="material-icons">label</span>
+                Clases
+            </a>
+            <a href="{{ url_for('papelera') }}" class="sidebar-item">
+                <span class="material-icons">delete</span>
+                Papelera
+            </a>
+            <hr class="sidebar-divider" />
+            <a href="{{ url_for('logout') }}" class="sidebar-item">
+                <span class="material-icons">logout</span>
+                Cerrar Sesión
+            </a>
+        </div>
+
+        <div class="content-area">
+            <h2>Tareas con Recordatorios</h2>
+
+            <div class="notes-grid">
+                {% for tarea in tareas %}
+                <div class="note-card">
+                    <h3>{{ tarea.titulo }}</h3>
+                    <p>{{ tarea.contenido }}</p>
+
+                    <div class="reminder-display">
+                        <span class="material-icons">alarm</span>
+                        Recordatorio:
+                        {% if tarea.fecha_recordatorio %}
+                            {{ tarea.fecha_recordatorio if tarea.fecha_recordatorio is string else tarea.fecha_recordatorio.strftime('%d/%m/%Y') }}
+                        {% endif %}
+                        {% if tarea.fecha_recordatorio and tarea.hora_recordatorio %}, {% endif %}
+                        {% if tarea.hora_recordatorio %}
+                            {{ tarea.hora_recordatorio if tarea.hora_recordatorio is string else tarea.hora_recordatorio.strftime('%H:%M') }}
+                        {% endif %}
+                    </div>
+
+                    <div class="note-actions">
+                        <a href="{{ url_for('edit_task', task_id=tarea._id|string) }}">
+                            <span class="material-icons">edit</span>
+                        </a>
+                        <form
+                            action="{{ url_for('delete_task', task_id=tarea._id|string) }}"
+                            method="POST"
+                            onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta tarea?');"
+                        >
+                            <button type="submit" title="Eliminar Tarea">
+                                <span class="material-icons">delete</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <p class="no-tasks-message">No tienes tareas con recordatorios.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

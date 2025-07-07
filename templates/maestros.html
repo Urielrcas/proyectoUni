@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel Maestro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stylesindex.css') }}" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+</head>
+<body>
+
+    <!-- Barra superior -->
+    <div class="top-bar">
+        <div class="logo">
+            <span class="material-icons" style="font-size: 28px; margin-right: 10px;">lightbulb</span>
+            Unigestor
+        </div>
+
+        <div class="profile-section">
+            <span class="username">{{ nombre }}</span>
+            <div class="profile">
+                <img src="{{ url_for('static', filename='profile_pics/' + imagen) }}" alt="Perfil" class="profile-image" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal con sidebar y área principal -->
+    <div class="main-content">
+
+        <!-- Sidebar personalizado -->
+        <div class="sidebar">
+            <a href="{{ url_for('maestros_dashboard') }}" class="sidebar-item {% if request.endpoint == 'maestros_dashboard' %}active{% endif %}">
+                <span class="material-icons">lightbulb</span>
+                Tareas
+            </a>
+            <a href="#" class="sidebar-item {% if request.endpoint == 'alumnos' %}active{% endif %}">
+                <span class="material-icons">notifications</span>
+                Alumnos
+            </a>
+            <a href="#" class="sidebar-item {% if request.endpoint == 'estadisticas' %}active{% endif %}">
+                <span class="material-icons">insert_chart</span>
+                Estadísticas
+            </a>
+            <hr class="sidebar-divider">
+            <a href="{{ url_for('logout') }}" class="sidebar-item">
+                <span class="material-icons">logout</span>
+                Cerrar Sesión
+            </a>
+        </div>
+
+        <!-- Área principal de contenido -->
+        <div class="content-area">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Caja de creación de tareas (estilo Keep) -->
+            <div class="note-creation-box">
+                <form method="POST" action="{{ url_for('create_task_maestro') }}">
+                    <input type="text" id="titulo" name="titulo" placeholder="Crear una tarea..." required class="note-title-input" />
+                    <textarea id="contenido" name="contenido" placeholder="Contenido de la tarea..." class="note-content-textarea"></textarea>
+                    
+                    <div class="reminder-section">
+                        
+                        <button type="submit">Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Listado de tareas en tarjetas tipo Keep -->
+            <div class="notes-grid">
+                {% if tareas %}
+                    {% for tarea in tareas %}
+                    <div class="note-card" data-task-id="{{ tarea._id|string }}"
+                         data-reminder-date="{{ tarea.fecha_recordatorio.strftime('%Y-%m-%d') if tarea.fecha_recordatorio else '' }}"
+                         data-reminder-time="{{ tarea.hora_recordatorio.strftime('%H:%M') if tarea.hora_recordatorio else '' }}">
+                        <h3>{{ tarea.titulo }}</h3>
+                        {% if tarea.contenido %}
+                        <p>{{ tarea.contenido }}</p>
+                        {% endif %}
+                        {% if tarea.fecha_recordatorio or tarea.hora_recordatorio %}
+                        <div class="reminder-display">
+                            <span class="material-icons">alarm</span>
+                            Recordatorio: 
+                            {% if tarea.fecha_recordatorio %}{{ tarea.fecha_recordatorio.strftime('%d/%m/%Y') }}{% endif %}
+                            {% if tarea.fecha_recordatorio and tarea.hora_recordatorio %}, {% endif %}
+                            {% if tarea.hora_recordatorio %}{{ tarea.hora_recordatorio.strftime('%H:%M') }}{% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="note-actions">
+                            <a href="{{ url_for('edit_task_maestro', task_id=tarea._id|string) }}" title="Editar Tarea">
+                                <span class="material-icons">edit</span>
+                            </a>
+                            <form action="{{ url_for('delete_task_maestro', task_id=tarea._id|string) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta tarea?');">
+                                <button type="submit" title="Eliminar Tarea">
+                                    <span class="material-icons">delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="no-tasks-message">No hay tareas registradas aún.</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/indexjs.js') }}"></script> 
+</body>
+</html>

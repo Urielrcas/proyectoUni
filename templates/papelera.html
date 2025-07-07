@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Papelera</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stylesindex.css') }}" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo">
+            <span class="material-icons" style="font-size: 28px; margin-right: 10px;">lightbulb</span>
+            Unigestor
+        </div>
+
+        <div class="profile-section">
+            {% if current_user.is_authenticated %}
+            <span class="username">{{ current_user.nombre }}</span>
+            {% endif %}
+            <div class="profile">
+                {% if current_user.imagen %}
+                <img
+                    src="{{ url_for('static', filename='uploads/' + current_user.imagen) }}"
+                    alt="Perfil"
+                    class="profile-image"
+                />
+                {% else %}
+                <img
+                    src="{{ url_for('static', filename='uploads/default.jpg') }}"
+                    alt="Perfil"
+                    class="profile-image"
+                />
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <span class="material-icons">lightbulb</span>
+                Notas
+            </a>
+            <a href="{{ url_for('recordatorios') }}" class="sidebar-item">
+                <span class="material-icons">notifications</span>
+                Recordatorios
+            </a>
+            <a href="{{ url_for('clases') }}" class="sidebar-item">
+                <span class="material-icons">label</span>
+                Clases
+            </a>
+            <a href="{{ url_for('papelera') }}" class="sidebar-item active">
+                <span class="material-icons">delete</span>
+                Papelera
+            </a>
+            <hr class="sidebar-divider" />
+            <a href="{{ url_for('logout') }}" class="sidebar-item">
+                <span class="material-icons">logout</span>
+                Cerrar Sesión
+            </a>
+        </div>
+
+        <div class="content-area">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <ul class="flash-messages">
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endwith %}
+
+            <h2>Papelera</h2>
+
+            {% if tareas %}
+                <div class="notes-grid">
+                    {% for tarea in tareas %}
+                    <div class="note-card">
+                        <h3>{{ tarea.titulo }}</h3>
+                        <p>{{ tarea.contenido }}</p>
+                        {% if tarea.fecha_recordatorio %}
+                        <div class="reminder-display">
+                            <span class="material-icons">notifications</span>
+                            {{ tarea.fecha_recordatorio if tarea.fecha_recordatorio is string else tarea.fecha_recordatorio.strftime('%d/%m/%Y') }}
+                            {% if tarea.hora_recordatorio %}
+                            , {{ tarea.hora_recordatorio if tarea.hora_recordatorio is string else tarea.hora_recordatorio.strftime('%H:%M') }}
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="note-actions">
+                            <form method="POST" action="{{ url_for('restaurar_tarea', task_id=tarea._id|string) }}" style="display:inline;">
+                                <button type="submit" title="Restaurar tarea">
+                                    <span class="material-icons">restore</span>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('eliminar_permanente', task_id=tarea._id|string) }}" style="display:inline;" onsubmit="return confirm('¿Eliminar permanentemente esta tarea?');">
+                                <button type="submit" title="Eliminar permanentemente">
+                                    <span class="material-icons">delete_forever</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Aquí no hay tareas eliminadas.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/indexjs.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clases - Unigestor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stylesindex.css') }}" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo">
+            <span class="material-icons" style="font-size: 28px; margin-right: 10px;">lightbulb</span>
+            Unigestor
+        </div>
+
+        <div class="search-bar">
+            <form action="{{ url_for('search_tasks') }}" method="GET" class="search-form">
+                <input type="text" name="query" placeholder="Buscar tareas..." class="search-input" value="{{ search_query if search_query is defined else '' }}">
+                <button type="submit" class="search-button">
+                    <span class="material-icons">search</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="profile-section">
+            {% if current_user.is_authenticated %}
+                <span class="username">{{ current_user.nombre }}</span>
+            {% endif %}
+            <div class="profile">
+                {% if current_user.imagen %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.imagen) }}" alt="Perfil" class="profile-image">
+                {% else %}
+                    <img src="{{ url_for('static', filename='uploads/default.jpg') }}" alt="Perfil" class="profile-image">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-item">
+                <span class="material-icons">lightbulb</span>
+                Notas
+            </a>
+            <a href="{{ url_for('recordatorios') }}" class="sidebar-item">
+                <span class="material-icons">notifications</span>
+                Recordatorios
+            </a>
+            <a href="{{ url_for('clases') }}" class="sidebar-item active">
+                <span class="material-icons">label</span>
+                Clases
+            </a>
+            <a href="{{ url_for('papelera') }}" class="sidebar-item">
+                <span class="material-icons">delete</span>
+                Papelera
+            </a>
+
+            <!-- Mis Clases -->
+            <div class="mis-clases-container">
+                <h4 class="mis-clases-titulo">Mis Clases</h4>
+                <ul class="mis-clases-lista">
+                    {% for clase in mis_clases %}
+                        {% set nombre_clase = clase.nombre if clase.nombre else clase.materia if clase.materia else clase.codigo_clase %}
+                        <li>
+                            <a href="{{ url_for('vista_clase', codigo=clase.codigo_clase) }}"
+                               class="sidebar-item {% if session.get('clase_activa') == clase.codigo_clase %}active{% endif %}">
+                                {% if session.get('clase_activa') == clase.codigo_clase %}
+                                    <strong>{{ nombre_clase }} ({{ clase.codigo_clase }})</strong>
+                                {% else %}
+                                    {{ nombre_clase }} ({{ clase.codigo_clase }})
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li>No estás unido a ninguna clase.</li>
+                    {% endfor %}
+                </ul>
+
+                {% if session.get('clase_activa') %}
+                <form action="{{ url_for('salir_clase') }}" method="POST" style="margin-top: 10px;">
+                    <input type="hidden" name="codigo_clase" value="{{ session.get('clase_activa') }}">
+                    <button type="submit" class="salir-clase-btn" style="background-color: #e53935; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer;">
+                        Salir de la clase
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            <hr class="sidebar-divider">
+            <a href="{{ url_for('logout') }}" class="sidebar-item">
+                <span class="material-icons">logout</span>
+                Cerrar Sesión
+            </a>
+        </div>
+
+        <div class="content-area">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            <div class="note-creation-box expanded" style="max-width: 400px; margin: auto;">
+                <h2 style="text-align:center;">Ingresar Código de Clase</h2>
+                <p style="text-align:center;">Por favor, ingresa el código de clase para unirte o acceder a ella.</p>
+                <form action="{{ url_for('clases') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" name="codigo_clase" id="codigo_clase" required placeholder="Ejemplo: ABC123" class="note-title-input" style="padding: 10px;">
+                    <button type="submit" style="align-self: flex-end; padding: 8px 15px; border-radius: 20px; background-color:#1a73e8; color:white; border:none; cursor:pointer;">
+                        Ingresar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
